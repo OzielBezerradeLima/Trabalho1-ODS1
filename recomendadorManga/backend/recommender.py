@@ -1,39 +1,60 @@
 import pandas as pd
 import numpy as np
 
-def cosine_similarity_matrix(mat):
+def cosine_similarity_matrix(mat: np.ndarray) -> np.ndarray:
+    """
+    Calcula a similaridade cosseno entre as linhas da matriz mat.
+    Retorna uma matriz de similaridade quadrada.
+    """
     norms = np.linalg.norm(mat, axis=1)
-    norms[norms == 0] = 1e-9
+    norms[norms == 0] = 1e-9  # evita divisão por zero
     normalized = mat / norms[:, None]
-    return normalized @ normalizedpy.T
+    return normalized @ normalized.T  # produto escalar para similaridade
 
-def build_user_item_matrix(ratings_df):
+def build_user_item_matrix(ratings_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Constrói a matriz usuário-item a partir do dataframe de avaliações.
+    Valores ausentes são preenchidos com 0.
+    """
+    # Garantir que IDs e ratings sejam inteiros
+    ratings_df["user_id"] = pd.to_numeric(ratings_df["user_id"], errors="coerce").fillna(0).astype(int)
+    ratings_df["item_id"] = pd.to_numeric(ratings_df["item_id"], errors="coerce").fillna(0).astype(int)
+    ratings_df["rating"] = pd.to_numeric(ratings_df["rating"], errors="coerce").fillna(0).astype(int)
+
     return ratings_df.pivot_table(index='user_id', columns='item_id', values='rating', fill_value=0)
 
-def get_recommendations(user_id, items_df, ratings_df, top_n=5):
-    ui = build_user_item_matrix(ratings_df)
+def get_recommendations(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataFrame, top_n: int = 5) -> list:
+    """
+    Gera recomendações de itens para um usuário usando filtragem colaborativa baseada em itens.
+    """
+    ui_matrix = build_user_item_matrix(ratings_df)
 
-    if user_id not in ui.index:
-        return []
+    if user_id not in ui_matrix.index:
+        return []  # usuário não possui avaliações
 
-    item_matrix = ui.T.values
-    sim = cosine_similarity_matrix(item_matrix)
-    item_sim = pd.DataFrame(sim, index=ui.columns, columns=ui.columns)
+    item_matrix = ui_matrix.T.values
+    sim_matrix = cosine_similarity_matrix(item_matrix)
+    item_sim = pd.DataFrame(sim_matrix, index=ui_matrix.columns, columns=ui_matrix.columns)
 
     preds = {}
-    for item in ui.columns:
-        if ui.loc[user_id, item] != 0:
-            continue
+    for item in ui_matrix.columns:
+        if ui_matrix.loc[user_id, item] != 0:
+            continue  # usuário já avaliou este item
+
         sims = item_sim[item]
-        rated_items = ui.loc[user_id] != 0
-        weights = sims[rated_items.index[rated_items]]
-        ratings = ui.loc[user_id, rated_items]
+        rated_mask = ui_matrix.loc[user_id] != 0
+        weights = sims[rated_mask.index[rated_mask]]
+        ratings = ui_matrix.loc[user_id, rated_mask]
+
         if len(weights) == 0:
-            continue
+            continue  # nenhum item similar avaliado
+
         score = (weights * ratings).sum() / (np.abs(weights).sum() + 1e-9)
         preds[item] = score
 
+    # Seleciona os top_n itens
     top_items = sorted(preds.items(), key=lambda x: x[1], reverse=True)[:top_n]
+
     results = []
     for item_id, score in top_items:
         row = items_df[items_df['item_id'] == item_id]
@@ -44,4 +65,45 @@ def get_recommendations(user_id, items_df, ratings_df, top_n=5):
                 "category": row['category'].values[0],
                 "score": float(score)
             })
+
     return results
+
+def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataFrame, test_fraction: float = 0.5, top_n: int = 5) -> dict:
+    """
+    Avalia a acurácia da recomendação dividindo as avaliações do usuário em treino e teste.
+    """
+    user_ratings = ratings_df[ratings_df['user_id'] == user_id]
+
+    if len(user_ratings) < 2:
+        return None  # precisa de pelo menos 2 avaliações para treino/teste
+
+    # Divisão treino/teste
+    test_size = max(1, int(len(user_ratings) * test_fraction))
+    test_items = user_ratings.sample(test_size, random_state=42)
+    train_items = user_ratings.drop(test_items.index)
+
+    # Dataframe de treino contendo todas as avaliações de outros usuários + treino do usuário atual
+    train_df = pd.concat([ratings_df[ratings_df['user_id'] != user_id], train_items])
+
+    # Gera recomendações com base no treino
+    recs = get_recommendations(user_id, items_df, train_df, top_n=top_n)
+
+    if not recs:
+        return None
+
+    recommended_ids = {r['item_id'] for r in recs}
+    test_liked = set(test_items[test_items['rating'] >= 4]['item_id'])  # >=4 considera "gostou"
+
+    if not test_liked:
+        return None
+
+    hits = len(recommended_ids & test_liked)
+    accuracy = hits / len(recommended_ids)
+
+    return {
+        "user_id": user_id,
+        "recommended": list(recommended_ids),
+        "test_liked": list(test_liked),
+        "hits": hits,
+        "accuracy": accuracy
+    }

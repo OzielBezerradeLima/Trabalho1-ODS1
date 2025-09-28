@@ -10,8 +10,15 @@ API_URL = "http://127.0.0.1:8000/recomendar"
 
 # Carregar dados
 items_df = pd.read_csv(ITEMS_CSV)
+
 if os.path.exists(RATINGS_CSV):
     ratings_df = pd.read_csv(RATINGS_CSV)
+
+    # Garantir que os IDs sejam inteiros
+    ratings_df["user_id"] = pd.to_numeric(ratings_df["user_id"], errors="coerce").fillna(0).astype(int)
+    ratings_df["item_id"] = pd.to_numeric(ratings_df["item_id"], errors="coerce").fillna(0).astype(int)
+    ratings_df["rating"] = pd.to_numeric(ratings_df["rating"], errors="coerce").fillna(0).astype(int)
+
 else:
     ratings_df = pd.DataFrame(columns=["user_id", "item_id", "rating"])
 
