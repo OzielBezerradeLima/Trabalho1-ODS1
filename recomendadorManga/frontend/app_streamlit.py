@@ -8,6 +8,10 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import altair as alt
 
+# --- Inicializa o estado da sessão para controle de página ---
+if 'selected_manga_id' not in st.session_state:
+    st.session_state.selected_manga_id = None
+
 # Caminhos dos CSVs do backend
 ITEMS_CSV = "../backend/items.csv"
 RATINGS_CSV = "../backend/ratings.csv"
