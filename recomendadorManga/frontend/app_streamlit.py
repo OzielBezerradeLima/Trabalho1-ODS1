@@ -11,6 +11,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ITEMS_CSV = "../backend/items.csv"
 RATINGS_CSV = "../backend/ratings.csv"
 API_URL = "http://127.0.0.1:8000/recomendar"
+items_df = pd.read_csv(ITEMS_CSV)
+api_acuracia_url = f"{API_URL}/avaliar_acuracia"
 
 # Cabeçalho para simular um navegador e evitar bloqueios (erro 403)
 HEADERS = {
