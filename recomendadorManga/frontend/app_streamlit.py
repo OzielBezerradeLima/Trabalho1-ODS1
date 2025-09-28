@@ -4,6 +4,9 @@ import os
 import requests
 import altair as alt
 
+# Importação necessária para a nova Tab 4
+from streamlit_extras.card import card
+
 # --- Inicializa o estado da sessão para controle de página ---
 if 'selected_manga_id' not in st.session_state:
     st.session_state.selected_manga_id = None
@@ -212,64 +215,41 @@ else:
                     st.error(f"Erro: {e}")
 
     # -------------------------------------
-    # Tab 4: Catálogo de Mangás
+    # Tab 4: Catálogo de Mangás (MODIFICADO)
     # -------------------------------------
     with tab4:
         st.header("Catálogo de Mangás")
         NUM_COLUMNS = 4
         columns = st.columns(NUM_COLUMNS)
 
-        # CSS para alinhar altura dos cards
-        st.markdown(
-            """
-            <style>
-            .manga-card {
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                height: 350px; /* altura fixa para alinhar */
-                padding: 10px;
-                border: 1px solid #444;
-                border-radius: 8px;
-                margin-bottom: 15px;
-                background-color: #111;
-            }
-            .manga-card img {
-                max-height: 180px;
-                object-fit: contain;
-                margin: 0 auto;
-            }
-            .manga-title {
-                text-align: center;
-                font-weight: bold;
-                margin-top: 8px;
-            }
-            .manga-rating {
-                text-align: center;
-                margin-top: auto;
-                margin-bottom: 8px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+        # O bloco de CSS foi removido pois não é mais necessário
 
         for i, (index, row) in enumerate(items_with_avg.iterrows()):
             col = columns[i % NUM_COLUMNS]
             with col:
-                st.markdown(
-                    f"""
-                    <div class="manga-card">
-                        <img src="{row['image_url']}" />
-                        <div class="manga-title">{row['title']}</div>
-                        <div class="manga-rating">
-                            {"⭐ " + f"{row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações"}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
+                # Usando o componente 'card' para criar um item clicável
+                card(
+                    title=f"{row['title']}",
+                    text=f"⭐ {row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações",
+                    image=row['image_url'],
+                    on_click=lambda item_id=row['item_id']: st.session_state.update(selected_manga_id=item_id),
+                    key=f"card_{row['item_id']}",
+                    styles={
+                        "card": {
+                            "width": "100%",
+                            "height": "350px", # Altura fixa para alinhar os cards
+                            "margin": "0px",
+                        },
+                        "title": { # Garante que o título não quebre em muitas linhas
+                            "overflow": "hidden",
+                            "text-overflow": "ellipsis",
+                            "white-space": "nowrap",
+                        }
+                    }
                 )
-                # Botão para abrir os detalhes
-                if st.button("Ver Detalhes", key=f"details_{row['item_id']}"):
-                    st.session_state.selected_manga_id = row['item_id']
-                    st.rerun()
+        
+        # O st.rerun() não é mais necessário aqui.
+        # O on_click atualiza o st.session_state, e o Streamlit automaticamente
+        # re-executa o script. Na próxima execução, a condição principal
+        # 'if st.session_state.selected_manga_id:' será verdadeira,
+        # mostrando a tela de detalhes.
