@@ -75,7 +75,7 @@ def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataF
     user_ratings = ratings_df[ratings_df['user_id'] == user_id]
 
     if len(user_ratings) < 2:
-        return None  # precisa de pelo menos 2 avaliações para treino/teste
+        return {"user_id": user_id, "message": "Usuário não tem avaliações suficientes para o teste de acurácia (requer pelo menos 2 avaliações)."}
 
     # Divisão treino/teste
     test_size = max(1, int(len(user_ratings) * test_fraction))
@@ -89,13 +89,13 @@ def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataF
     recs = get_recommendations(user_id, items_df, train_df, top_n=top_n)
 
     if not recs:
-        return None
+        return {"user_id": user_id, "message": "Nenhuma recomendação encontrada para o usuário com base nos dados de treino."}
 
     recommended_ids = {r['item_id'] for r in recs}
     test_liked = set(test_items[test_items['rating'] >= 4]['item_id'])  # >=4 considera "gostou"
 
     if not test_liked:
-        return None
+        return {"user_id": user_id, "message": "Nenhuma avaliação positiva (>=4) encontrada no conjunto de teste. A acurácia não pode ser calculada."}
 
     hits = len(recommended_ids & test_liked)
     accuracy = hits / len(recommended_ids)
