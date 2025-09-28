@@ -54,23 +54,36 @@ with tab1:
     st.header("Adicionar Usuário e Avaliação de Mangá")
     
     new_user_id = st.number_input("ID do Usuário", min_value=1, step=1)
-    new_item_id = st.number_input("ID do Mangá", min_value=1, step=1)
+    
+    # MODIFICAÇÃO AQUI: Usar selectbox para o nome do mangá
+    manga_titles = items_df["title"].tolist()
+    selected_manga_title = st.selectbox("Nome do Mangá", manga_titles)
+    
+    # Obter o item_id correspondente ao nome do mangá selecionado
+    new_item_id = items_df[items_df["title"] == selected_manga_title]["item_id"].iloc[0]
+    st.write(f"ID do Mangá Selecionado: {new_item_id}") # Para visualização, pode remover depois
+
     new_rating = st.slider("Nota do Mangá", min_value=1, max_value=5, value=3)
     
-    if st.button("Adicionar Avaliação"):
-        exists = ((ratings_df["user_id"] == new_user_id) & 
-                  (ratings_df["item_id"] == new_item_id)).any()
-        if exists:
-            st.warning("Este usuário já avaliou este mangá!")
+    if st.button("Salvar Avaliação"):
+        # Verifica se o usuário já avaliou o mangá
+        exists_index = ratings_df[
+            (ratings_df["user_id"] == new_user_id) &
+            (ratings_df["item_id"] == new_item_id)
+        ].index
+
+        if len(exists_index) > 0:
+            # Atualiza a nota existente
+            ratings_df.loc[exists_index, "rating"] = new_rating
+            st.success(f"Avaliação atualizada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
         else:
             new_row = {"user_id": new_user_id, "item_id": new_item_id, "rating": new_rating}
             # Atualizar o dataframe na sessão
             ratings_df = pd.concat([ratings_df, pd.DataFrame([new_row])], ignore_index=True)
-            # Guardar no ficheiro CSV
-            ratings_df.to_csv(RATINGS_CSV, index=False)
             st.success(f"Avaliação adicionada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
-            # Limpar o cache para que os dados sejam recarregados na próxima interação
-            st.cache_data.clear()
+        
+        # Atualiza CSV
+        ratings_df.to_csv(RATINGS_CSV, index=False)
 
     st.subheader("Avaliações existentes")
     st.dataframe(ratings_df)
@@ -118,27 +131,29 @@ with tab3:
     
     selected_item = items_with_avg[items_with_avg["title"] == selected_title].iloc[0]
 
-    st.markdown("---")
-    
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        image_url = selected_item.get("image_url")
-        if image_url and pd.notna(image_url):
-            # Tentar carregar a imagem diretamente do URL
-            st.image(image_url, caption=selected_item["title"], use_container_width=True)
-        else:
-            st.warning("URL da imagem não disponível.")
+    st.subheader(selected_item["title"])
+    st.write(f"Categoria: {selected_item['category']}")
+    if "author" in items_with_avg.columns:
+        st.write(f"Autor: {selected_item['author']}")
+    if "year" in items_with_avg.columns:
+        st.write(f"Ano: {selected_item['year']}")
+    st.write(f"Média de Avaliação: {selected_item['avg_rating']:.2f}")
 
-    with col2:
-        st.subheader(selected_item["title"])
-        st.write(f"**Categoria:** {selected_item['category']}")
-        if "author" in items_with_avg.columns and pd.notna(selected_item['author']):
-            st.write(f"**Autor:** {selected_item['author']}")
-        if "year" in items_with_avg.columns and pd.notna(selected_item['year']):
-            # Assegurar que o ano é um inteiro antes de mostrar
-            try:
-                st.write(f"**Ano:** {int(selected_item['year'])}")
-            except (ValueError, TypeError):
-                st.write(f"**Ano:** {selected_item['year']}")
-        st.write(f"**Média de Avaliação:** {selected_item['avg_rating']:.2f}")
+    user_for_rec = st.number_input("Seu ID de usuário para recomendações", min_value=1, step=1)
+    top_n_rec = st.slider("Quantos mangás recomendar", 1, 5, 3)
+
+    if st.button("Recomendar para mim"):
+        try:
+            response = requests.get(f"{API_URL}/{user_for_rec}", params={"top_n": top_n_rec})
+            if response.status_code == 200:
+                recs = response.json()["recommendations"]
+                if recs:
+                    rec_df = pd.DataFrame(recs)
+                    st.subheader(f"Recomendações para Usuário {user_for_rec}")
+                    st.table(rec_df[["item_id", "title", "category", "score"]])
+                else:
+                    st.warning("Nenhuma recomendação encontrada para este usuário.")
+            else:
+                st.error("Erro ao conectar ao backend")
+        except Exception as e:
+            st.error(f"Erro: {e}")
