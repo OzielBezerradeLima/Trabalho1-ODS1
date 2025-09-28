@@ -265,10 +265,11 @@ else:
                         <div class="manga-rating">
                             {"⭐ " + f"{row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações"}
                         </div>
-                        <form action="" method="get">
-                            <button type="submit" name="details" value="{row['item_id']}">Ver Detalhes</button>
-                        </form>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
+                # Botão para abrir os detalhes
+                if st.button("Ver Detalhes", key=f"details_{row['item_id']}"):
+                    st.session_state.selected_manga_id = row['item_id']
+                    st.rerun()
