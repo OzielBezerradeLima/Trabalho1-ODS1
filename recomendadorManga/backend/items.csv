@@ -1,101 +1,101 @@
-item_id,title,category
-1,Naruto,Shounen
-2,Berserk,Seinen
-3,One Piece,Shounen
-4,Death Note,Suspense
-5,Attack on Titan,Shounen
-6,Bleach,Shounen
-7,Fullmetal Alchemist,Shounen
-8,Tokyo Ghoul,Seinen
-9,Hunter x Hunter,Shounen
-10,JoJo's Bizarre Adventure,Shounen
-11,Vagabond,Seinen
-12,Claymore,Seinen
-13,Black Clover,Shounen
-14,Demon Slayer,Shounen
-15,Chainsaw Man,Shounen
-16,Parasyte,Seinen
-17,Akira,Seinen
-18,Gantz,Seinen
-19,Slam Dunk,Shounen
-20,Dragon Ball,Shounen
-21,Neon Genesis Evangelion,Sci-Fi
-22,Monster,Suspense
-23,The Promised Neverland,Suspense
-24,Blue Lock,Shounen
-25,Pluto,Suspense
-26,Fairy Tail,Shounen
-27,Dr. Stone,Shounen
-28,Fire Force,Shounen
-29,Beelzebub,Shounen
-30,Great Teacher Onizuka,Seinen
-31,Yu Yu Hakusho,Shounen
-32,Rurouni Kenshin,Shounen
-33,Inuyasha,Shounen
-34,Fist of the North Star,Shounen
-35,Shaman King,Shounen
-36,Katekyo Hitman Reborn!,Shounen
-37,D.Gray-man,Shounen
-38,Saint Seiya,Shounen
-39,Soul Eater,Shounen
-40,Magi: The Labyrinth of Magic,Shounen
-41,Erased,Suspense
-42,Kaguya-sama: Love is War,Romance
-43,Nisekoi,Romance
-44,Lovely★Complex,Romance
-45,Your Lie in April,Romance
-46,Fruits Basket,Romance
-47,Horimiya,Romance
-48,Toradora!,Romance
-49,Ouran High School Host Club,Romance
-50,Kimi ni Todoke,Romance
-51,Nana,Josei
-52,Paradise Kiss,Josei
-53,Akame ga Kill!,Shounen
-54,Made in Abyss,Seinen
-55,Blame!,Seinen
-56,Dorohedoro,Seinen
-57,No Guns Life,Seinen
-58,Deadman Wonderland,Shounen
-59,Elfen Lied,Seinen
-60,Hellsing,Seinen
-61,Black Lagoon,Seinen
-62,Golden Kamuy,Seinen
-63,Uzaki-chan Wants to Hang Out!,Comédia
-64,Grand Blue,Comédia
-65,Konosuba,Comédia
-66,Azumanga Daioh,Comédia
-67,School Rumble,Comédia
-68,Nichijou,Comédia
-69,Yotsuba&,Comédia
-70,Gintama,Comédia
-71,Assassination Classroom,Shounen
-72,Medaka Box,Shounen
-73,To Love-Ru,Romance
-74,Chobits,Romance
-75,Cardcaptor Sakura,Shoujo
-76,Sailor Moon,Shoujo
-77,Magic Knight Rayearth,Shoujo
-78,Skip Beat!,Shoujo
-79,Kamichama Karin,Shoujo
-80,Kodomo no Omocha,Shoujo
-81,Angel Sanctuary,Shoujo
-82,Trinity Seven,Shounen
-83,A Certain Magical Index,Shounen
-84,The World God Only Knows,Shounen
-85,Tegami Bachi,Shounen
-86,Air Gear,Shounen
-87,Bakuman,Shounen
-88,Yakitate!! Japan,Shounen
-89,Food Wars!,Shounen
-90,Hikaru no Go,Shounen
-91,Kuroko no Basket,Shounen
-92,Haikyuu!!,Shounen
-93,Prince of Tennis,Shounen
-94,EyeShield 21,Shounen
-95,Captain Tsubasa,Shounen
-96,Initial D,Seinen
-97,Battle Royale,Seinen
-98,Homunculus,Seinen
-99,Goodnight Punpun,Seinen
-100,20th Century Boys,Suspense
+item_id,title,category,author,year
+1,Naruto,Shounen,Masashi Kishimoto,1999
+2,Berserk,Seinen,Kentaro Miura,1989
+3,One Piece,Shounen,Eiichiro Oda,1997
+4,Death Note,Suspense,Tsugumi Ohba,2003
+5,Attack on Titan,Shounen,Hajime Isayama,2009
+6,Bleach,Shounen,Tite Kubo,2001
+7,Fullmetal Alchemist,Shounen,Hiromu Arakawa,2001
+8,Tokyo Ghoul,Seinen,Sui Ishida,2011
+9,Hunter x Hunter,Shounen,Yoshihiro Togashi,1998
+10,JoJo's Bizarre Adventure,Shounen,Hirohiko Araki,1987
+11,Vagabond,Seinen,Takehiko Inoue,1998
+12,Claymore,Seinen,Norihiro Yagi,2001
+13,Black Clover,Shounen,Yuki Tabata,2015
+14,Demon Slayer,Shounen,Koyoharu Gotouge,2016
+15,Chainsaw Man,Shounen,Tatsuki Fujimoto,2018
+16,Parasyte,Seinen,Hitoshi Iwaaki,1988
+17,Akira,Seinen,Katsuhiro Otomo,1982
+18,Gantz,Seinen,Hiroya Oku,2000
+19,Slam Dunk,Shounen,Takehiko Inoue,1990
+20,Dragon Ball,Shounen,Akira Toriyama,1984
+21,Neon Genesis Evangelion,Sci-Fi,Yoshiyuki Sadamoto,1994
+22,Monster,Suspense,Naoki Urasawa,1994
+23,The Promised Neverland,Suspense,Kaiu Shirai,2016
+24,Blue Lock,Shounen,Muneyuki Kaneshiro,2018
+25,Pluto,Suspense,Naoki Urasawa,2003
+26,Fairy Tail,Shounen,Hiro Mashima,2006
+27,Dr. Stone,Shounen,Riichiro Inagaki,2017
+28,Fire Force,Shounen, Atsushi Ōkubo,2015
+29,Beelzebub,Shounen,Ryuhei Tamura,2009
+30,Great Teacher Onizuka,Seinen,Toru Fujisawa,1997
+31,Yu Yu Hakusho,Shounen,Yoshihiro Togashi,1990
+32,Rurouni Kenshin,Shounen,Nobuhiro Watsuki,1994
+33,Inuyasha,Shounen,Rumiko Takahashi,1996
+34,Fist of the North Star,Shounen,Buronson,1983
+35,Shaman King,Shounen,Hiroyuki Takei,1998
+36,Katekyo Hitman Reborn!,Shounen,Akira Amano,2004
+37,D.Gray-man,Shounen,Katsura Hoshino,2004
+38,Saint Seiya,Shounen,Masami Kurumada,1986
+39,Soul Eater,Shounen, Atsushi Ōkubo,2004
+40,Magi: The Labyrinth of Magic,Shounen,Shinobu Ohtaka,2009
+41,Erased,Suspense,Kei Sanbe,2012
+42,Kaguya-sama: Love is War,Romance,Aka Akasaka,2015
+43,Nisekoi,Romance,Naoshi Komi,2011
+44,Lovely★Complex,Romance,Aya Nakahara,2001
+45,Your Lie in April,Romance,Naoshi Arakawa,2011
+46,Fruits Basket,Romance,Natsuki Takaya,1998
+47,Horimiya,Romance,HERO,2007
+48,Toradora!,Romance,Yuyuko Takemiya,2007
+49,Ouran High School Host Club,Romance,Bisco Hatori,2002
+50,Kimi ni Todoke,Romance,Karuho Shiina,2005
+51,Nana,Josei,Ai Yazawa,2000
+52,Paradise Kiss,Josei,Ai Yazawa,1999
+53,Akame ga Kill!,Shounen,Takahiro,2010
+54,Made in Abyss,Seinen,Akihito Tsukushi,2012
+55,Blame!,Seinen,Tsutomu Nihei,1997
+56,Dorohedoro,Seinen,Q Hayashida,2000
+57,No Guns Life,Seinen,Tetsuhiro Yagi,2014
+58,Deadman Wonderland,Shounen, Jinsei Kataoka,2007
+59,Elfen Lied,Seinen,Lynn Okamoto,2002
+60,Hellsing,Seinen,Kouta Hirano,1997
+61,Black Lagoon,Seinen,Rei Hiroe,2002
+62,Golden Kamuy,Seinen,Satoru Noda,2014
+63,Uzaki-chan Wants to Hang Out!,Comédia,Tamura,2017
+64,Grand Blue,Comédia,Kei Inoue,2014
+65,Konosuba,Comédia,Natsume Akatsuki,2013
+66,Azumanga Daioh,Comédia,Kiyohiko Azuma,1999
+67,School Rumble,Comédia,Jyugo Takahashi,2002
+68,Nichijou,Comédia,Keiichi Arawi,2006
+69,Yotsuba&,Comédia,Kiyohiko Azuma,2003
+70,Gintama,Comédia,Hiroshi Sakurai,2004
+71,Assassination Classroom,Shounen,Yusei Matsui,2012
+72,Medaka Box,Shounen,NisiOisiN,2009
+73,To Love-Ru,Romance,Saki Hasemi,2006
+74,Chobits,Romance,CLAMP,2001
+75,Cardcaptor Sakura,Shoujo,CLAMP,1996
+76,Sailor Moon,Shoujo,Naoko Takeuchi,1991
+77,Magic Knight Rayearth,Shoujo,CLAMP,1993
+78,Skip Beat!,Shoujo,Yoshiki Nakamura,2002
+79,Kamichama Karin,Shoujo,Kosuke Fujishima,1996
+80,Kodomo no Omocha,Shoujo,Miho Obana,1994
+81,Angel Sanctuary,Shoujo,Yuu Watase,1994
+82,Trinity Seven,Shounen,Kazuki Funatsu,2010
+83,A Certain Magical Index,Shounen,Kazuma Kamachi,2004
+84,The World God Only Knows,Shounen,Tamiki Wakaki,2008
+85,Tegami Bachi,Shounen,Hiroyuki Asada,2006
+86,Air Gear,Shounen,Oh! Great,2002
+87,Bakuman,Shounen,Tsugumi Ohba,2008
+88,Yakitate!! Japan,Shounen,Takashi Hashiguchi,2002
+89,Food Wars!,Shounen,Yuto Tsukuda,2012
+90,Hikaru no Go,Shounen,Yumi Hotta,1998
+91,Kuroko no Basket,Shounen,Tadatoshi Fujimaki,2008
+92,Haikyuu!!,Shounen,Haruichi Furudate,2012
+93,Prince of Tennis,Shounen,Takeshi Konomi,1999
+94,EyeShield 21,Shounen,Yusuke Murata,2002
+95,Captain Tsubasa,Shounen,Yōichi Takahashi,1981
+96,Initial D,Seinen,Shuichi Shigeno,1995
+97,Battle Royale,Seinen,Koushun Takami,2000
+98,Homunculus,Seinen,Hideo Yamamoto,2003
+99,Goodnight Punpun,Seinen,Inio Asano,2007
+100,20th Century Boys,Suspense,Naoki Urasawa,1999
