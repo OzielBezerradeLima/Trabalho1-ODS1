@@ -2,16 +2,18 @@ import streamlit as st
 import pandas as pd
 import os
 import requests
+import altair as alt
 
 # Caminhos dos CSVs do backend
 ITEMS_CSV = "../backend/items.csv"
 RATINGS_CSV = "../backend/ratings.csv"
-API_URL = "http://127.0.0.1:8000/recomendar"
+API_URL = "http://127.0.0.1:8000"
 
 # -------------------------
 # Carregar dados
 # -------------------------
 items_df = pd.read_csv(ITEMS_CSV)
+api_acuracia_url = f"{API_URL}/avaliar_acuracia"
 
 if os.path.exists(RATINGS_CSV):
     ratings_df = pd.read_csv(RATINGS_CSV)
@@ -30,9 +32,10 @@ items_with_avg.rename(columns={"rating": "avg_rating"}, inplace=True)
 # -------------------------
 # Streamlit Tabs
 # -------------------------
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "➕ Adicionar/Atualizar Avaliação",
     "📚 Gerar Recomendações",
+    "📊 Avaliar Acurácia",
     "🏠 Catálogo de Mangás"
 ])
 
@@ -89,13 +92,33 @@ with tab2:
         
         if st.button("Gerar Recomendações"):
             try:
-                response = requests.get(f"{API_URL}/{selected_user}", params={"top_n": top_n})
+                response = requests.get(f"{API_URL}/recomendar/{selected_user}", params={"top_n": top_n})
                 if response.status_code == 200:
                     recs = response.json()["recommendations"]
                     if recs:
                         rec_df = pd.DataFrame(recs)
                         st.subheader(f"Recomendações para Usuário {selected_user}")
-                        st.table(rec_df[["item_id", "title", "category", "score"]])
+                        
+                        # Exibe as recomendações com imagens e colunas
+                        rec_df = rec_df.merge(items_df[['item_id', 'image_url']], on='item_id', how='left')
+                        
+                        cols = st.columns(len(rec_df))
+                        for i, (index, row) in enumerate(rec_df.iterrows()):
+                            with cols[i]:
+                                st.image(row['image_url'], caption=row['title'], use_container_width='auto')
+                                st.write(f"**Score:** {row['score']:.2f}")
+
+                        # Adicionando o gráfico de barras dos scores
+                        st.subheader("Visualização dos Scores de Recomendação")
+                        chart = alt.Chart(rec_df).mark_bar().encode(
+                            x=alt.X('title', sort='-y', title='Título do Mangá'),
+                            y=alt.Y('score', title='Score de Recomendação'),
+                            tooltip=['title', 'score']
+                        ).properties(
+                            title='Top Recomendações por Score'
+                        )
+                        st.altair_chart(chart, use_container_width=True)
+
                     else:
                         st.warning("Nenhuma recomendação encontrada para este usuário.")
                 else:
@@ -104,13 +127,65 @@ with tab2:
                 st.error(f"Erro: {e}")
 
 # -------------------------------------
-# Tab 3: Catálogo de Mangás
+# Tab 3: Avaliar Acurácia
 # -------------------------------------
 with tab3:
+    st.header("Avaliação da Acurácia do Modelo")
+    
+    if ratings_df.empty or len(ratings_df['user_id'].unique()) < 1:
+        st.info("Adicione mais avaliações para calcular a acurácia.")
+    else:
+        selected_user_accuracy = st.number_input(
+            "Escolha o ID do Usuário para avaliação", 
+            min_value=int(ratings_df["user_id"].min()), 
+            max_value=int(ratings_df["user_id"].max()), 
+            step=1, 
+            value=int(ratings_df["user_id"].min())
+        )
+        test_fraction = st.slider("Fraçãode avaliações para teste", 0.1, 0.9, 0.5, step=0.1)
+        top_n_accuracy = st.slider("Quantidade de recomendações para avaliação", 1, 10, 5)
+        
+        if st.button("Calcular Acurácia"):
+            try:
+                response = requests.get(f"{API_URL}/avaliar_acuracia/{selected_user_accuracy}",
+                                        params={"top_n": top_n_accuracy, "test_fraction": test_fraction})
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if "message" in result:
+                        st.warning(result["message"])
+                    else:
+                        st.subheader(f"Resultados de Acurácia para o Usuário {result['user_id']}")
+                        st.metric(label="Acurácia", value=f"{result['accuracy']:.2%}")
+                        st.write(f"**Itens avaliados positivamente no teste:** {result['test_liked']}")
+                        st.write(f"**Itens recomendados:** {result['recommended']}")
+                        st.write(f"**Itens corretos (hits):** {result['hits']}")
+                else:
+                    st.error("Erro ao conectar ao backend")
+            except Exception as e:
+                st.error(f"Erro: {e}")
+
+# -------------------------------------
+# Tab 4: Catálogo de Mangás
+# -------------------------------------
+with tab4:
     st.header("Catálogo de Mangás")
-
-    st.dataframe(items_with_avg[["item_id", "title", "category", "avg_rating"]])
-
+    
+    # Define o número de colunas para o layout de grade
+    NUM_COLUMNS = 4
+    
+    # Loop para criar o layout de grade
+    columns = st.columns(NUM_COLUMNS)
+    for i, (index, row) in enumerate(items_with_avg.iterrows()):
+        col = columns[i % NUM_COLUMNS]
+        with col:
+            st.image(row['image_url'], use_container_width='auto')
+            st.markdown(f"**{row['title']}**")
+            st.write(f"⭐ {row['avg_rating']:.2f}")
+            
+    # Mantém a funcionalidade de detalhes e recomendações abaixo do catálogo
+    st.markdown("---")
+    st.subheader("Detalhes e Recomendações")
     selected_item_id = st.selectbox("Selecionar Mangá para detalhes", items_with_avg["item_id"])
     selected_item = items_with_avg[items_with_avg["item_id"] == selected_item_id].iloc[0]
 
@@ -127,7 +202,7 @@ with tab3:
 
     if st.button("Recomendar para mim"):
         try:
-            response = requests.get(f"{API_URL}/{user_for_rec}", params={"top_n": top_n_rec})
+            response = requests.get(f"{API_URL}/recomendar/{user_for_rec}", params={"top_n": top_n_rec})
             if response.status_code == 200:
                 recs = response.json()["recommendations"]
                 if recs:
