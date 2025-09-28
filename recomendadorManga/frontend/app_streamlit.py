@@ -43,7 +43,15 @@ with tab1:
     st.header("Adicionar ou Atualizar Avaliação de Mangá")
     
     new_user_id = st.number_input("ID do Usuário", min_value=1, step=1)
-    new_item_id = st.number_input("ID do Mangá", min_value=1, step=1)
+    
+    # MODIFICAÇÃO AQUI: Usar selectbox para o nome do mangá
+    manga_titles = items_df["title"].tolist()
+    selected_manga_title = st.selectbox("Nome do Mangá", manga_titles)
+    
+    # Obter o item_id correspondente ao nome do mangá selecionado
+    new_item_id = items_df[items_df["title"] == selected_manga_title]["item_id"].iloc[0]
+    st.write(f"ID do Mangá Selecionado: {new_item_id}") # Para visualização, pode remover depois
+
     new_rating = st.slider("Nota do Mangá", min_value=1, max_value=5, value=3)
     
     if st.button("Salvar Avaliação"):
@@ -56,12 +64,12 @@ with tab1:
         if len(exists_index) > 0:
             # Atualiza a nota existente
             ratings_df.loc[exists_index, "rating"] = new_rating
-            st.success(f"Avaliação atualizada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
+            st.success(f"Avaliação atualizada: Usuário {new_user_id}, Mangá '{selected_manga_title}' (ID: {new_item_id}), Nota {new_rating}")
         else:
             # Adiciona nova avaliação
             new_row = {"user_id": new_user_id, "item_id": new_item_id, "rating": new_rating}
             ratings_df = pd.concat([ratings_df, pd.DataFrame([new_row])], ignore_index=True)
-            st.success(f"Avaliação adicionada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
+            st.success(f"Avaliação adicionada: Usuário {new_user_id}, Mangá '{selected_manga_title}' (ID: {new_item_id}), Nota {new_rating}")
         
         # Atualiza CSV
         ratings_df.to_csv(RATINGS_CSV, index=False)
