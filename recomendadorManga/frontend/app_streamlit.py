@@ -118,14 +118,12 @@ else:
     ])
 
     # -------------------------------------
-    # Tab 1: Catálogo de Mangás (MODIFICADO)
+    # Tab 1: Catálogo de Mangás
     # -------------------------------------
     with tab1:
         st.header("Catálogo de Mangás")
         NUM_COLUMNS = 4
         columns = st.columns(NUM_COLUMNS)
-
-        # O bloco de CSS foi removido pois não é mais necessário
 
         for i, (index, row) in enumerate(items_with_avg.iterrows()):
             col = columns[i % NUM_COLUMNS]
@@ -140,17 +138,17 @@ else:
                     styles={
                         "card": {
                             "width": "100%",
-                            "height": "350px", # Altura fixa para alinhar os cards
+                            "height": "350px", 
                             "margin": "0px",
                         },
-                        "title": { # Garante que o título não quebre em muitas linhas
-                            #"overflow": "hidden",
-                            #"text-overflow": "ellipsis",
-                           # "white-space": "nowrap",
+                        "title": { 
+                            "height": "4em", 
+                            "line-height": "1.2em",
+                            "overflow": "hidden",
+                            "text-overflow": "ellipsis",
                         }
                     }
                 )
-        
 
 
     # -------------------------------------
@@ -267,35 +265,3 @@ else:
                         st.error("Erro ao conectar ao backend")
                 except Exception as e:
                     st.error(f"Erro: {e}")
-
-    # -------------------------------------
-    # Tab 4: Catálogo de Mangás
-    # -------------------------------------
-    with tab4:
-        st.header("Catálogo de Mangás")
-        NUM_COLUMNS = 4
-        columns = st.columns(NUM_COLUMNS)
-
-        for i, (index, row) in enumerate(items_with_avg.iterrows()):
-            col = columns[i % NUM_COLUMNS]
-            with col:
-                card(
-                    title=f"{row['title']}",
-                    text=f"⭐ {row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações",
-                    image=row['image_url'],
-                    on_click=lambda item_id=row['item_id']: st.session_state.update(selected_manga_id=item_id),
-                    key=f"card_{row['item_id']}",
-                    styles={
-                        "card": {
-                            "width": "100%",
-                            "height": "350px", # Altura fixa para alinhar os cards
-                            "margin": "0px",
-                        },
-                        "title": { 
-                            "height": "4em", # Adiciona uma altura fixa para evitar overflow
-                            "line-height": "1.2em", # Adiciona espaçamento entre as linhas
-                            "overflow": "hidden",
-                            "text-overflow": "ellipsis",
-                        }
-                    }
-                )
