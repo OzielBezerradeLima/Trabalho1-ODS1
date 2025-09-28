@@ -241,9 +241,9 @@ else:
                             "margin": "0px",
                         },
                         "title": { # Garante que o título não quebre em muitas linhas
-                            "overflow": "hidden",
-                            "text-overflow": "ellipsis",
-                            "white-space": "nowrap",
+                            #"overflow": "hidden",
+                            #"text-overflow": "ellipsis",
+                           # "white-space": "nowrap",
                         }
                     }
                 )
