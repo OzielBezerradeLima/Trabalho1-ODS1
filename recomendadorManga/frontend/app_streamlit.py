@@ -11,6 +11,9 @@ from streamlit_extras.card import card
 if 'selected_manga_id' not in st.session_state:
     st.session_state.selected_manga_id = None
 
+if 'current_user_id' not in st.session_state:
+    st.session_state.current_user_id = 1
+
 # Caminhos dos CSVs do backend
 ITEMS_CSV = "../backend/items.csv"
 RATINGS_CSV = "../backend/ratings.csv"
@@ -37,7 +40,7 @@ items_with_avg = items_df.merge(avg_ratings, on="item_id", how="left").fillna(0)
 items_with_avg.rename(columns={"rating": "avg_rating"}, inplace=True)
 
 # -------------------------------------
-# Tela de Detalhes do Mangá (Nova)
+# Tela de Detalhes do Mangá 
 # -------------------------------------
 def display_manga_details(item_id):
     global ratings_df
@@ -67,22 +70,36 @@ def display_manga_details(item_id):
     st.markdown("---")
     st.subheader("Sua Avaliação")
     
-    user_id = st.number_input("Seu ID de usuário", min_value=1, step=1, value=1)
-    new_rating = st.slider("Nota", min_value=1, max_value=5, value=3)
+    # Adiciona um input para o ID do usuário e armazena no estado da sessão
+    st.session_state.current_user_id = st.number_input("Seu ID de usuário", 
+                                                       min_value=1, 
+                                                       step=1, 
+                                                       value=st.session_state.current_user_id,
+                                                       key='user_id_input')
+
+    # Busca a avaliação do usuário atual para este mangá
+    user_rating_row = ratings_df[
+        (ratings_df["user_id"] == st.session_state.current_user_id) &
+        (ratings_df["item_id"] == item_id)
+    ]
+    
+    initial_rating = 3
+    if not user_rating_row.empty:
+        initial_rating = int(user_rating_row["rating"].iloc[0])
+        st.info(f"Você já avaliou este mangá com a nota **{initial_rating}**.")
+    else:
+        st.info("Você ainda não avaliou este mangá.")
+
+    new_rating = st.slider("Nota", min_value=1, max_value=5, value=initial_rating)
 
     if st.button("Salvar Minha Avaliação"):
-        exists_index = ratings_df[
-            (ratings_df["user_id"] == user_id) &
-            (ratings_df["item_id"] == item_id)
-        ].index
-
-        if len(exists_index) > 0:
-            ratings_df.loc[exists_index, "rating"] = new_rating
-            st.success(f"Avaliação atualizada: Usuário {user_id}, Mangá {item_id}, Nota {new_rating}")
+        if not user_rating_row.empty:
+            ratings_df.loc[user_rating_row.index, "rating"] = new_rating
+            st.success(f"Avaliação atualizada: Usuário {st.session_state.current_user_id}, Mangá {item_id}, Nota {new_rating}")
         else:
-            new_row = {"user_id": user_id, "item_id": item_id, "rating": new_rating}
+            new_row = {"user_id": st.session_state.current_user_id, "item_id": item_id, "rating": new_rating}
             ratings_df = pd.concat([ratings_df, pd.DataFrame([new_row])], ignore_index=True)
-            st.success(f"Avaliação adicionada: Usuário {user_id}, Mangá {item_id}, Nota {new_rating}")
+            st.success(f"Avaliação adicionada: Usuário {st.session_state.current_user_id}, Mangá {item_id}, Nota {new_rating}")
         
         ratings_df.to_csv(RATINGS_CSV, index=False)
         st.rerun()
@@ -231,6 +248,7 @@ else:
                 try:
                     response = requests.get(f"{API_URL}/avaliar_acuracia/{selected_user_accuracy}",
                                             params={"top_n": top_n_accuracy, "test_fraction": test_fraction})
+                    
                     if response.status_code == 200:
                         result = response.json()
                         if "message" in result:
@@ -250,9 +268,34 @@ else:
                 except Exception as e:
                     st.error(f"Erro: {e}")
 
-    
-        # O st.rerun() não é mais necessário aqui.
-        # O on_click atualiza o st.session_state, e o Streamlit automaticamente
-        # re-executa o script. Na próxima execução, a condição principal
-        # 'if st.session_state.selected_manga_id:' será verdadeira,
-        # mostrando a tela de detalhes.
+    # -------------------------------------
+    # Tab 4: Catálogo de Mangás
+    # -------------------------------------
+    with tab4:
+        st.header("Catálogo de Mangás")
+        NUM_COLUMNS = 4
+        columns = st.columns(NUM_COLUMNS)
+
+        for i, (index, row) in enumerate(items_with_avg.iterrows()):
+            col = columns[i % NUM_COLUMNS]
+            with col:
+                card(
+                    title=f"{row['title']}",
+                    text=f"⭐ {row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações",
+                    image=row['image_url'],
+                    on_click=lambda item_id=row['item_id']: st.session_state.update(selected_manga_id=item_id),
+                    key=f"card_{row['item_id']}",
+                    styles={
+                        "card": {
+                            "width": "100%",
+                            "height": "350px", # Altura fixa para alinhar os cards
+                            "margin": "0px",
+                        },
+                        "title": { 
+                            "height": "4em", # Adiciona uma altura fixa para evitar overflow
+                            "line-height": "1.2em", # Adiciona espaçamento entre as linhas
+                            "overflow": "hidden",
+                            "text-overflow": "ellipsis",
+                        }
+                    }
+                )
