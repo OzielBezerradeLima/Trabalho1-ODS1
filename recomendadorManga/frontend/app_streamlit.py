@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import os
 import requests
+import urllib3
+
+# Desativar avisos de SSL que podem aparecer no terminal
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import altair as alt
 
 # Caminhos dos CSVs do backend
@@ -40,13 +44,21 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # -------------------------------------
-# Tab 1: Adicionar/Atualizar Avaliação
+# Tab 1: Adicionar Usuário/Avaliação
 # -------------------------------------
 with tab1:
-    st.header("Adicionar ou Atualizar Avaliação de Mangá")
+    st.header("Adicionar Usuário e Avaliação de Mangá")
     
     new_user_id = st.number_input("ID do Usuário", min_value=1, step=1)
-    new_item_id = st.number_input("ID do Mangá", min_value=1, step=1)
+    
+    # MODIFICAÇÃO AQUI: Usar selectbox para o nome do mangá
+    manga_titles = items_df["title"].tolist()
+    selected_manga_title = st.selectbox("Nome do Mangá", manga_titles)
+    
+    # Obter o item_id correspondente ao nome do mangá selecionado
+    new_item_id = items_df[items_df["title"] == selected_manga_title]["item_id"].iloc[0]
+    st.write(f"ID do Mangá Selecionado: {new_item_id}") # Para visualização, pode remover depois
+
     new_rating = st.slider("Nota do Mangá", min_value=1, max_value=5, value=3)
     
     if st.button("Salvar Avaliação"):
@@ -61,8 +73,8 @@ with tab1:
             ratings_df.loc[exists_index, "rating"] = new_rating
             st.success(f"Avaliação atualizada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
         else:
-            # Adiciona nova avaliação
             new_row = {"user_id": new_user_id, "item_id": new_item_id, "rating": new_rating}
+            # Atualizar o dataframe na sessão
             ratings_df = pd.concat([ratings_df, pd.DataFrame([new_row])], ignore_index=True)
             st.success(f"Avaliação adicionada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
         
@@ -79,14 +91,12 @@ with tab2:
     st.header("Gerar Recomendações")
     
     if ratings_df.empty:
-        st.info("Adicione algumas avaliações primeiro na aba 'Adicionar/Atualizar Avaliação'.")
+        st.info("Adicione algumas avaliações primeiro na aba 'Adicionar Usuário/Avaliação'.")
     else:
-        selected_user = st.number_input(
-            "Escolha o ID do Usuário", 
-            min_value=int(ratings_df["user_id"].min()), 
-            max_value=int(ratings_df["user_id"].max()), 
-            step=1, 
-            value=int(ratings_df["user_id"].min())
+        user_ids = ratings_df["user_id"].unique()
+        selected_user = st.selectbox(
+            "Escolha o ID do Usuário",
+            options=sorted(user_ids)
         )
         top_n = st.slider("Quantidade de Recomendações", 1, 10, 5)
         
