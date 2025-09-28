@@ -9,29 +9,29 @@ item_id,title,category,author,year,image_url
 8,Tokyo Ghoul,Seinen,Sui Ishida,2001,https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Tokyo_Ghoul_volume_1_cover.jpg/250px-Tokyo_Ghoul_volume_1_cover.jpg
 9,Hunter x Hunter,Shounen,Yoshihiro Togashi,1998,https://comicvine.gamespot.com/a/uploads/scale_large/13/136525/5977324-1.jpg
 10,JoJo's Bizarre Adventure,Shounen,Hirohiko Araki,1987,https://comicvine.gamespot.com/a/uploads/scale_large/11133/111331711/6446278-volume_1.jpg
-11,Vagabond,Seinen,Takehiko Inoue,1998,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2649514-01.jpg
-12,Claymore,Seinen,Norihiro Yagi,2001,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2607904-01.jpg
-13,Black Clover,Shounen,Yuki Tabata,2015,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/5228393-01.jpg
-14,Demon Slayer,Shounen,Koyoharu Gotouge,2016,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/5897171-01.jpg
-15,Chainsaw Man,Shounen,Tatsuki Fujimoto,2018,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/6628604-01.jpg
-16,Parasyte,Seinen,Hitoshi Iwaaki,1988,https://comicvine.gamespot.com/a/uploads/scale_large/9/98348/4437207-1.jpg
-17,Akira,Seinen,Katsuhiro Otomo,1982,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/3962221-01.jpg
-18,Gantz,Seinen,Hiroya Oku,2000,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2612265-01.jpg
-19,Slam Dunk,Shounen,Takehiko Inoue,1990,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2643564-01.jpg
-20,Dragon Ball,Shounen,Akira Toriyama,1984,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2609148-01.jpg
-21,Neon Genesis Evangelion,Sci-Fi,Yoshiyuki Sadamoto,1994,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2625126-01.jpg
-22,Monster,Suspense,Naoki Urasawa,1994,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2622416-01.jpg
-23,The Promised Neverland,Suspense,Kaiu Shirai,2016,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/6042220-01.jpg
-24,Blue Lock,Shounen,Muneyuki Kaneshiro,2018,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/7091218-01.jpg
-25,Pluto,Suspense,Naoki Urasawa,2003,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2629555-01.jpg
-26,Fairy Tail,Shounen,Hiro Mashima,2006,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2612217-01.jpg
-27,Dr. Stone,Shounen,Riichiro Inagaki,2017,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/6221443-01.jpg
-28,Fire Force,Shounen,Atsushi Ōkubo,2015,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/5433095-01.jpg
-29,Beelzebub,Shounen,Ryuhei Tamura,2009,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2601968-01.jpg
-30,Great Teacher Onizuka,Seinen,Toru Fujisawa,1997,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2612349-01.jpg
-31,Yu Yu Hakusho,Shounen,Yoshihiro Togashi,1990,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2651034-01.jpg
-32,Rurouni Kenshin,Shounen,Nobuhiro Watsuki,1994,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2630048-01.jpg
-33,Inuyasha,Shounen,Rumiko Takahashi,1996,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2618950-01.jpg
+11,Vagabond,Seinen,Takehiko Inoue,1998,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2938558-01.jpg
+12,Claymore,Seinen,Norihiro Yagi,2001,https://comicvine.gamespot.com/a/uploads/scale_large/0/3125/5149037-cla1.jpg
+13,Black Clover,Shounen,Yuki Tabata,2015,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/5238079-01.jpg
+14,Demon Slayer,Shounen,Koyoharu Gotouge,2016,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/6497309-01.jpg
+15,Chainsaw Man,Shounen,Tatsuki Fujimoto,2018,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/6818656-01.jpg
+16,Parasyte,Seinen,Hitoshi Iwaaki,1988,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/4934222-01.jpg
+17,Akira,Seinen,Katsuhiro Otomo,1982,https://comicvine.gamespot.com/a/uploads/scale_large/0/4/26118-4041-29012-1-akira.jpg
+18,Gantz,Seinen,Hiroya Oku,2000,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/5551803-01.jpg
+19,Slam Dunk,Shounen,Takehiko Inoue,1990,https://comicvine.gamespot.com/a/uploads/scale_large/11/110017/9590738-wwww.jpg
+20,Dragon Ball,Shounen,Akira Toriyama,1984,https://comicvine.gamespot.com/a/uploads/scale_large/0/4/44991-7104-52045-1-dragon-ball.jpg
+21,Neon Genesis Evangelion,Sci-Fi,Yoshiyuki Sadamoto,1994,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/3238176-01.jpg
+22,Monster,Suspense,Naoki Urasawa,1994,https://comicvine.gamespot.com/a/uploads/scale_large/13/136525/5882532-1.jpg
+23,The Promised Neverland,Suspense,Kaiu Shirai,2016,https://comicvine.gamespot.com/a/uploads/scale_large/11137/111378594/8919474-1.jpg
+24,Blue Lock,Shounen,Muneyuki Kaneshiro,2018,https://comicvine.gamespot.com/a/uploads/scale_large/11139/111391600/8783882-6eea1a1b-bd04-4d0a-ac59-be130ce9b8a8.jpeg
+25,Pluto,Suspense,Naoki Urasawa,2003,https://comicvine.gamespot.com/a/uploads/scale_large/11139/111391600/9042513-1662743184-91V4i.jpg
+26,Fairy Tail,Shounen,Hiro Mashima,2006,https://comicvine.gamespot.com/a/uploads/scale_large/0/9116/2250521-1.jpg
+27,Dr. Stone,Shounen,Riichiro Inagaki,2017,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/6594480-01.jpg
+28,Fire Force,Shounen,Atsushi Ōkubo,2015,https://comicvine.gamespot.com/a/uploads/scale_large/11137/111378594/8049696-1.jpg
+29,Beelzebub,Shounen,Ryuhei Tamura,2009,https://comicvine.gamespot.com/a/uploads/scale_large/13/136525/5474976-1.jpg
+30,Great Teacher Onizuka,Seinen,Toru Fujisawa,1997,https://comicvine.gamespot.com/a/uploads/scale_large/11/110017/9799719-wwww.jpg
+31,Yu Yu Hakusho,Shounen,Yoshihiro Togashi,1990,https://comicvine.gamespot.com/a/uploads/scale_large/11/110017/9867719-wwww.jpg
+32,Rurouni Kenshin,Shounen,Nobuhiro Watsuki,1994,https://images-ext-1.discordapp.net/external/hbhxWc1by1ftdBuBFUQK_OnEK6dnxznY-hx3elYEPHs/https/comicvine.gamespot.com/a/uploads/scale_small/6/67663/4367451-01.jpg?format=webp
+33,Inuyasha,Shounen,Rumiko Takahashi,1996,https://comicvine.gamespot.com/a/uploads/scale_large/1/19859/462359-viz1569319472.jpg
 34,Fist of the North Star,Shounen,Buronson,1983,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2612234-01.jpg
 35,Shaman King,Shounen,Hiroyuki Takei,1998,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2630244-01.jpg
 36,Katekyo Hitman Reborn!,Shounen,Akira Amano,2004,https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/2621008-01.jpg
