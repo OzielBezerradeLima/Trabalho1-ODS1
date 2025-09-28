@@ -218,16 +218,57 @@ else:
         st.header("Catálogo de Mangás")
         NUM_COLUMNS = 4
         columns = st.columns(NUM_COLUMNS)
+
+        # CSS para alinhar altura dos cards
+        st.markdown(
+            """
+            <style>
+            .manga-card {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                height: 350px; /* altura fixa para alinhar */
+                padding: 10px;
+                border: 1px solid #444;
+                border-radius: 8px;
+                margin-bottom: 15px;
+                background-color: #111;
+            }
+            .manga-card img {
+                max-height: 180px;
+                object-fit: contain;
+                margin: 0 auto;
+            }
+            .manga-title {
+                text-align: center;
+                font-weight: bold;
+                margin-top: 8px;
+            }
+            .manga-rating {
+                text-align: center;
+                margin-top: auto;
+                margin-bottom: 8px;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
         for i, (index, row) in enumerate(items_with_avg.iterrows()):
             col = columns[i % NUM_COLUMNS]
             with col:
-                st.image(row['image_url'], use_container_width=True)
-                st.markdown(f"**{row['title']}**")
-                if row['avg_rating'] > 0:
-                    st.write(f"⭐ {row['avg_rating']:.2f}")
-                else:
-                    st.write("Sem avaliações")
-                
-                if st.button("Ver Detalhes", key=f"details_button_{row['item_id']}"):
-                    st.session_state.selected_manga_id = row['item_id']
-                    st.rerun()
+                st.markdown(
+                    f"""
+                    <div class="manga-card">
+                        <img src="{row['image_url']}" />
+                        <div class="manga-title">{row['title']}</div>
+                        <div class="manga-rating">
+                            {"⭐ " + f"{row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações"}
+                        </div>
+                        <form action="" method="get">
+                            <button type="submit" name="details" value="{row['item_id']}">Ver Detalhes</button>
+                        </form>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
