@@ -225,7 +225,7 @@ else:
                 step=1, 
                 value=int(ratings_df["user_id"].min())
             )
-            test_fraction = st.slider("Fraçãode avaliações para teste", 0.1, 0.9, 0.5, step=0.1)
+            test_fraction = st.slider("Fração de avaliações para teste", 0.1, 0.9, 0.5, step=0.1)
             top_n_accuracy = st.slider("Quantidade de recomendações para avaliação", 1, 10, 5)
             if st.button("Calcular Acurácia"):
                 try:
