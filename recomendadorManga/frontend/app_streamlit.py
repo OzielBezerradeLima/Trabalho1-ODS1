@@ -111,16 +111,52 @@ if st.session_state.selected_manga_id:
     display_manga_details(st.session_state.selected_manga_id)
 else:
     tab1, tab2, tab3, tab4 = st.tabs([
+        "🏠 Catálogo de Mangás",
         "➕ Adicionar/Atualizar Avaliação",
         "📚 Gerar Recomendações",
         "📊 Avaliar Acurácia",
-        "🏠 Catálogo de Mangás"
     ])
 
     # -------------------------------------
-    # Tab 1: Adicionar/Atualizar Avaliação
+    # Tab 1: Catálogo de Mangás (MODIFICADO)
     # -------------------------------------
     with tab1:
+        st.header("Catálogo de Mangás")
+        NUM_COLUMNS = 4
+        columns = st.columns(NUM_COLUMNS)
+
+        # O bloco de CSS foi removido pois não é mais necessário
+
+        for i, (index, row) in enumerate(items_with_avg.iterrows()):
+            col = columns[i % NUM_COLUMNS]
+            with col:
+                # Usando o componente 'card' para criar um item clicável
+                card(
+                    title=f"{row['title']}",
+                    text=f"⭐ {row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações",
+                    image=row['image_url'],
+                    on_click=lambda item_id=row['item_id']: st.session_state.update(selected_manga_id=item_id),
+                    key=f"card_{row['item_id']}",
+                    styles={
+                        "card": {
+                            "width": "100%",
+                            "height": "350px", # Altura fixa para alinhar os cards
+                            "margin": "0px",
+                        },
+                        "title": { # Garante que o título não quebre em muitas linhas
+                            #"overflow": "hidden",
+                            #"text-overflow": "ellipsis",
+                           # "white-space": "nowrap",
+                        }
+                    }
+                )
+        
+
+
+    # -------------------------------------
+    # Tab 2: Adicionar/Atualizar Avaliação
+    # -------------------------------------
+    with tab2:
         st.header("Adicionar ou Atualizar Avaliação de Mangá")
         new_user_id = st.number_input("ID do Usuário", min_value=1, step=1)
         
@@ -149,9 +185,9 @@ else:
         st.dataframe(ratings_df)
 
     # -------------------------------------
-    # Tab 2: Gerar Recomendações
+    # Tab 3: Gerar Recomendações
     # -------------------------------------
-    with tab2:
+    with tab3:
         st.header("Gerar Recomendações")
         
         if ratings_df.empty:
@@ -192,9 +228,9 @@ else:
                     st.error(f"Erro: {e}")
 
     # -------------------------------------
-    # Tab 3: Avaliar Acurácia
+    # Tab 4: Avaliar Acurácia
     # -------------------------------------
-    with tab3:
+    with tab4:
         st.header("Avaliação da Acurácia do Modelo")
         if ratings_df.empty or len(ratings_df['user_id'].unique()) < 1:
             st.info("Adicione mais avaliações para calcular a acurácia.")
