@@ -128,7 +128,6 @@ else:
         for i, (index, row) in enumerate(items_with_avg.iterrows()):
             col = columns[i % NUM_COLUMNS]
             with col:
-                # Usando o componente 'card' para criar um item clicável
                 card(
                     title=f"{row['title']}",
                     text=f"⭐ {row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações",
@@ -156,8 +155,16 @@ else:
     # -------------------------------------
     with tab2:
         st.header("Adicionar ou Atualizar Avaliação de Mangá")
-        new_user_id = st.number_input("ID do Usuário", min_value=1, step=1)
         
+        user_ids = sorted(ratings_df["user_id"].unique())
+        all_user_ids = ["Adicionar novo usuário"] + user_ids
+        selected_user_id_input = st.selectbox("ID do Usuário", options=all_user_ids)
+        
+        if selected_user_id_input == "Adicionar novo usuário":
+            new_user_id = st.number_input("Digite o ID do novo usuário", min_value=1, step=1)
+        else:
+            new_user_id = selected_user_id_input
+
         manga_titles = items_df["title"].tolist()
         selected_manga_title = st.selectbox("Nome do Mangá", manga_titles)
         
@@ -178,7 +185,10 @@ else:
                 new_row = {"user_id": new_user_id, "item_id": new_item_id, "rating": new_rating}
                 ratings_df = pd.concat([ratings_df, pd.DataFrame([new_row])], ignore_index=True)
                 st.success(f"Avaliação adicionada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
+            
             ratings_df.to_csv(RATINGS_CSV, index=False)
+            st.rerun() 
+        
         st.subheader("Avaliações existentes")
         st.dataframe(ratings_df)
 
@@ -206,11 +216,28 @@ else:
                             rec_df = pd.DataFrame(recs)
                             st.subheader(f"Recomendações para Usuário {selected_user}")
                             rec_df = rec_df.merge(items_df[['item_id', 'image_url']], on='item_id', how='left')
-                            cols = st.columns(len(rec_df))
-                            for i, (index, row) in enumerate(rec_df.iterrows()):
-                                with cols[i]:
-                                    st.image(row['image_url'], caption=row['title'], use_container_width=True)
-                                    st.write(f"**Score:** {row['score']:.2f}")
+                            
+                            recs_per_row = 5
+                            num_recs = len(rec_df)
+
+                            for i in range(0, num_recs, recs_per_row):
+                                start = i
+                                end = min(i + recs_per_row, num_recs)
+                                row_data = rec_df.iloc[start:end]
+                                
+                                num_cols_in_row = len(row_data)
+                                num_spacers = 5 - num_cols_in_row
+                                
+                                cols = st.columns([1, *[2] * num_cols_in_row, *[1] * num_spacers])
+                                
+                                with cols[0]:
+                                    st.write("")
+                                
+                                for j, (index, row) in enumerate(row_data.iterrows()):
+                                    with cols[j + 1]:
+                                        st.image(row['image_url'], caption=row['title'], use_container_width=True)
+                                        st.write(f"**Score:** {row['score']:.2f}")
+
                             st.subheader("Visualização dos Scores de Recomendação")
                             chart = alt.Chart(rec_df).mark_bar().encode(
                                 x=alt.X('title', sort='-y', title='Título do Mangá'),
