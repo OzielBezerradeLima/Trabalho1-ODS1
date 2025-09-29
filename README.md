@@ -86,7 +86,7 @@ O sistema utiliza uma abordagem de **Filtragem Colaborativa Item-Item (Item-Base
 A métrica de similaridade implementada é a **Similaridade de Cosseno (Cosine Similarity)**.
 
 * **O que é?** A similaridade de cosseno mede o cosseno do ângulo entre dois vetores. No nosso caso, cada mangá pode ser representado como um vetor contendo todas as notas que recebeu dos usuários. A métrica, então, calcula o quão "próximos" esses vetores estão em termos de direção.
-* **Por que foi usada?** Essa é uma das métricas mais tradicionais и eficazes para sistemas de recomendação. Ela é particularmente útil para encontrar itens com padrões de avaliação semelhantes, independentemente da magnitude das notas. Por exemplo, se um grupo de usuários tende a dar notas altas para os mesmos dois mangás, a similaridade de cosseno entre eles será alta. É uma abordagem robusta e computacionalmente eficiente para capturar a relação de gostos entre os itens.
+* **Por que foi usada?** Essa é uma das métricas mais tradicionais e eficazes para sistemas de recomendação. Ela é particularmente útil para encontrar itens com padrões de avaliação semelhantes, independentemente da magnitude das notas. Por exemplo, se um grupo de usuários tende a dar notas altas para os mesmos dois mangás, a similaridade de cosseno entre eles será alta. É uma abordagem robusta e computacionalmente eficiente para capturar a relação de gostos entre os itens.
 
 ## Cálculo e Análise da Acurácia
 
