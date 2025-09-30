@@ -72,7 +72,7 @@ def get_recommendations(user_id: int, items_df: pd.DataFrame, ratings_df: pd.Dat
 def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataFrame) -> dict:
     """
     Avalia a acurácia da recomendação dividindo as avaliações do usuário em treino e teste (70/30).
-    As recomendações são geradas para 5 itens e comparadas com avaliações positivas no teste.
+    Acurácia = (número de acertos) / (número de itens recomendados).
     """
     user_ratings = ratings_df[ratings_df['user_id'] == user_id]
 
@@ -101,13 +101,11 @@ def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataF
         return {"user_id": user_id, "message": "Nenhuma avaliação positiva (>=4) encontrada no conjunto de teste. A acurácia não pode ser calculada."}
 
     hits = len(recommended_ids & test_liked)
-    """
-    Acurácia é o número de hits dividido pelo número de recomendações, mas o divisor é limitado pelo número de itens de teste.
-    Para prevenir que o número de recomendações seja maior do que o número de casos presentes no dataset de teste
-    """
     
-    denominator = min(len(recs), len(test_liked))
+    # === REVERSÃO DA LÓGICA: Denominador é SEMPRE o número de itens recomendados (5) ===
+    denominator = len(recs)
     accuracy = hits / denominator # Precisão: hits / total de recomendações
+    # =================================================================================
 
     return {
         "user_id": user_id,
@@ -119,7 +117,7 @@ def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataF
 
 def calculate_overall_accuracy(items_df: pd.DataFrame, ratings_df: pd.DataFrame) -> dict:
     """
-    Calcula a acurácia média do modelo para todos os usuários.
+    Calcula a acurácia média do modelo para todos os usuários usando a métrica Precision.
     """
     unique_users = ratings_df["user_id"].unique()
     all_accuracies = []
