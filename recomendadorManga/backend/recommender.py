@@ -23,9 +23,9 @@ def build_user_item_matrix(ratings_df: pd.DataFrame) -> pd.DataFrame:
 
     return ratings_df.pivot_table(index='user_id', columns='item_id', values='rating', fill_value=0)
 
-def get_recommendations(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataFrame, top_n: int = 5) -> list:
+def get_recommendations(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataFrame) -> list:
     """
-    Gera recomendações de itens para um usuário usando filtragem colaborativa baseada em itens.
+    Gera 5 recomendações de itens para um usuário usando filtragem colaborativa baseada em itens.
     """
     ui_matrix = build_user_item_matrix(ratings_df)
 
@@ -52,7 +52,8 @@ def get_recommendations(user_id: int, items_df: pd.DataFrame, ratings_df: pd.Dat
         score = (weights * ratings).sum() / (np.abs(weights).sum() + 1e-9)
         preds[item] = score
 
-    # Seleciona os top_n itens
+    # Seleciona os 5 top itens
+    top_n = 5
     top_items = sorted(preds.items(), key=lambda x: x[1], reverse=True)[:top_n]
 
     results = []
@@ -68,16 +69,18 @@ def get_recommendations(user_id: int, items_df: pd.DataFrame, ratings_df: pd.Dat
 
     return results
 
-def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataFrame, test_fraction: float = 0.5, top_n: int = 5) -> dict:
+def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataFrame) -> dict:
     """
-    Avalia a acurácia da recomendação dividindo as avaliações do usuário em treino e teste.
+    Avalia a acurácia da recomendação dividindo as avaliações do usuário em treino e teste (70/30).
+    As recomendações são geradas para 5 itens e comparadas com avaliações positivas no teste.
     """
     user_ratings = ratings_df[ratings_df['user_id'] == user_id]
 
     if len(user_ratings) < 2:
         return {"user_id": user_id, "message": "Usuário não tem avaliações suficientes para o teste de acurácia (requer pelo menos 2 avaliações)."}
 
-    # Divisão treino/teste
+    # Divisão treino/teste (70% treino, 30% teste)
+    test_fraction = 0.3
     test_size = max(1, int(len(user_ratings) * test_fraction))
     test_items = user_ratings.sample(test_size, random_state=42)
     train_items = user_ratings.drop(test_items.index)
@@ -85,12 +88,12 @@ def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataF
     # Dataframe de treino contendo todas as avaliações de outros usuários + treino do usuário atual
     train_df = pd.concat([ratings_df[ratings_df['user_id'] != user_id], train_items])
 
-    # Gera recomendações com base no treino
-    recs = get_recommendations(user_id, items_df, train_df, top_n=top_n)
+    # Gera 5 recomendações com base no treino
+    recs = get_recommendations(user_id, items_df, train_df)
 
     if not recs:
         return {"user_id": user_id, "message": "Nenhuma recomendação encontrada para o usuário com base nos dados de treino."}
-
+    
     recommended_ids = {r['item_id'] for r in recs}
     test_liked = set(test_items[test_items['rating'] >= 4]['item_id'])  # >=4 considera "gostou"
 
@@ -98,7 +101,13 @@ def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataF
         return {"user_id": user_id, "message": "Nenhuma avaliação positiva (>=4) encontrada no conjunto de teste. A acurácia não pode ser calculada."}
 
     hits = len(recommended_ids & test_liked)
-    accuracy = hits / len(recommended_ids)
+    """
+    Acurácia é o número de hits dividido pelo número de recomendações, mas o divisor é limitado pelo número de itens de teste.
+    Para prevenir que o número de recomendações seja maior do que o número de casos presentes no dataset de teste
+    """
+    
+    denominator = min(len(recs), len(test_liked))
+    accuracy = hits / denominator # Precisão: hits / total de recomendações
 
     return {
         "user_id": user_id,
@@ -106,4 +115,25 @@ def evaluate_accuracy(user_id: int, items_df: pd.DataFrame, ratings_df: pd.DataF
         "test_liked": list(test_liked),
         "hits": hits,
         "accuracy": accuracy
+    }
+
+def calculate_overall_accuracy(items_df: pd.DataFrame, ratings_df: pd.DataFrame) -> dict:
+    """
+    Calcula a acurácia média do modelo para todos os usuários.
+    """
+    unique_users = ratings_df["user_id"].unique()
+    all_accuracies = []
+
+    for user_id in unique_users:
+        result = evaluate_accuracy(user_id, items_df, ratings_df)
+        if "accuracy" in result:
+            all_accuracies.append(result["accuracy"])
+
+    if not all_accuracies:
+        return {"message": "Nenhum usuário com dados suficientes para calcular a acurácia."}
+
+    overall_accuracy = sum(all_accuracies) / len(all_accuracies)
+    return {
+        "overall_accuracy": overall_accuracy,
+        "total_users_evaluated": len(all_accuracies)
     }
