@@ -5,183 +5,99 @@ import requests
 import altair as alt
 import math
 from streamlit_extras.card import card
+from streamlit_option_menu import option_menu
 
-# --- Inicializa o estado da sessão para controle de página ---
+# --- Configuração da Página ---
+st.set_page_config(
+    page_title="Recomendador de Mangás",
+    page_icon="📚",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# --- Exibição de Notificações Agendadas ---
+if 'toast_message' in st.session_state and st.session_state.toast_message:
+    st.toast(st.session_state.toast_message['message'], icon=st.session_state.toast_message['icon'])
+    # Limpa a mensagem para não exibir novamente
+    st.session_state.toast_message = None
+
+# --- Inicializa o estado da sessão ---
 if 'selected_manga_id' not in st.session_state:
     st.session_state.selected_manga_id = None
-
 if 'current_user_id' not in st.session_state:
     st.session_state.current_user_id = 1
-
-# Adiciona estado para a paginação
 if 'page' not in st.session_state:
     st.session_state.page = 1
 
-
-# Caminhos dos CSVs do backend
+# --- Constantes e Carregamento de Dados ---
 ITEMS_CSV = "../backend/items.csv"
 RATINGS_CSV = "../backend/ratings.csv"
 API_URL = "http://127.0.0.1:8000"
 
-# -------------------------
-# Carregar dados 
-# -------------------------
+@st.cache_data
 def load_data():
-    items_df = pd.read_csv(ITEMS_CSV)
+    """Carrega os dados dos arquivos CSV, com cache para performance."""
+    items = pd.read_csv(ITEMS_CSV)
     if os.path.exists(RATINGS_CSV):
-        ratings_df = pd.read_csv(RATINGS_CSV)
-        # Garantir que os IDs e ratings sejam inteiros
-        ratings_df["user_id"] = pd.to_numeric(ratings_df["user_id"], errors="coerce").fillna(0).astype(int)
-        ratings_df["item_id"] = pd.to_numeric(ratings_df["item_id"], errors="coerce").fillna(0).astype(int)
-        ratings_df["rating"] = pd.to_numeric(ratings_df["rating"], errors="coerce").fillna(0).astype(int)
+        ratings = pd.read_csv(RATINGS_CSV)
+        for col in ["user_id", "item_id", "rating"]:
+            ratings[col] = pd.to_numeric(ratings[col], errors="coerce").fillna(0).astype(int)
     else:
-        ratings_df = pd.DataFrame(columns=["user_id", "item_id", "rating"])
-    return items_df, ratings_df
+        ratings = pd.DataFrame(columns=["user_id", "item_id", "rating"])
+    return items, ratings
 
-items_df, ratings_df = load_data()
-
-
-# Otimização do cálculo da média sem cache
 def get_items_with_avg(items_df, ratings_df):
+    """Calcula a média de avaliação para cada item."""
+    if ratings_df.empty:
+        items_with_avg = items_df.copy()
+        items_with_avg['avg_rating'] = 0
+        return items_with_avg
+        
     avg_ratings = ratings_df.groupby("item_id")["rating"].mean().reset_index()
     items_with_avg = items_df.merge(avg_ratings, on="item_id", how="left").fillna(0)
     items_with_avg.rename(columns={"rating": "avg_rating"}, inplace=True)
     return items_with_avg
 
+items_df, ratings_df = load_data()
 items_with_avg = get_items_with_avg(items_df, ratings_df)
 
-# -------------------------------------
-# FUNÇÃO PARA CORRIGIR O PROBLEMA DO CLIQUE DUPLO
+# --- Funções Auxiliares ---
 def set_selected_manga_and_rerun(item_id):
+    """Define o mangá selecionado e força a re-renderização para a página de detalhes."""
     st.session_state.selected_manga_id = item_id
-    # ADICIONADO NOVAMENTE: Força a reexecução para renderizar a tela de detalhes
-    st.rerun() 
+    st.rerun()
 
-# -------------------------------------
-# Tela de Detalhes do Mangá
-# -------------------------------------
-def display_manga_details(item_id):
-    global ratings_df
+# --- Funções das Páginas ---
 
-    # Ação de clique de retorno deve forçar o rerun para mudar de tela
-    st.button("↩️ Voltar ao Catálogo", on_click=lambda: st.session_state.update(selected_manga_id=None), key="back_button")
+def display_catalog():
+    st.header(" Catálogo de Mangás")
+    # ... (código do catálogo permanece o mesmo)
+    search_query = st.text_input("Buscar por título", key="search_input")
+    categories = ["Todas"] + sorted(items_with_avg["category"].unique().tolist())
+    selected_category = st.selectbox("Filtrar por Categoria", options=categories, key="category_select")
 
-    selected_item = items_with_avg[items_with_avg["item_id"] == item_id].iloc[0]
+    filtered_items = items_with_avg
+    if search_query:
+        filtered_items = filtered_items[filtered_items["title"].str.contains(search_query, case=False, na=False)]
+    if selected_category != "Todas":
+        filtered_items = filtered_items[filtered_items["category"] == selected_category]
 
-    st.header(selected_item["title"])
-
-    # Layout de colunas para a imagem e os detalhes
-    col1, col2 = st.columns([1, 2])
-
-    with col1:
-        st.image(selected_item['image_url'], use_container_width=True)
-
-    with col2:
-        st.subheader("Detalhes")
-        st.write(f"**Autor:** {selected_item['author']}")
-        st.write(f"**Ano:** {selected_item['year']}")
-        st.write(f"**Categoria:** {selected_item['category']}")
-        if selected_item['avg_rating'] > 0:
-            st.write(f"**Média de Avaliação:** ⭐ {selected_item['avg_rating']:.2f}")
-        else:
-            st.write("**Média de Avaliação:** Sem avaliações")
-
-    st.markdown("---")
-    st.subheader("Sua Avaliação")
-
-    # Adiciona um input para o ID do usuário e armazena no estado da sessão
-    st.session_state.current_user_id = st.number_input("Seu ID de usuário",
-                                                       min_value=1,
-                                                       step=1,
-                                                       value=st.session_state.current_user_id,
-                                                       key='user_id_input')
-
-    # Busca a avaliação do usuário atual para este mangá
-    user_rating_row = ratings_df[
-        (ratings_df["user_id"] == st.session_state.current_user_id) &
-        (ratings_df["item_id"] == item_id)
-    ]
-
-    initial_rating = 3
-    if not user_rating_row.empty:
-        initial_rating = int(user_rating_row["rating"].iloc[0])
-        st.info(f"Você já avaliou este mangá com a nota **{initial_rating}**.")
+    if filtered_items.empty:
+        st.warning("Nenhum mangá encontrado.")
     else:
-        st.info("Você ainda não avaliou este mangá.")
-
-    new_rating = st.slider("Nota", min_value=1, max_value=5, value=initial_rating)
-
-    if st.button("Salvar Minha Avaliação"):
-        current_user_id = st.session_state.current_user_id # Variavel local para o ID
+        ITEMS_PER_PAGE = 12
+        total_pages = math.ceil(len(filtered_items) / ITEMS_PER_PAGE)
+        if st.session_state.page > total_pages and total_pages > 0:
+            st.session_state.page = 1
         
-        if not user_rating_row.empty:
-            ratings_df.loc[user_rating_row.index, "rating"] = new_rating
-            st.success(f"Avaliação atualizada: Usuário {current_user_id}, Mangá {item_id}, Nota {new_rating}")
-        else:
-            new_row = {"user_id": current_user_id, "item_id": item_id, "rating": new_rating}
-            ratings_df = pd.concat([ratings_df, pd.DataFrame([new_row])], ignore_index=True)
-            st.success(f"Avaliação adicionada: Usuário {current_user_id}, Mangá {item_id}, Nota {new_rating}")
-        
-        ratings_df.to_csv(RATINGS_CSV, index=False)
-        st.rerun()
+        start_idx = (st.session_state.page - 1) * ITEMS_PER_PAGE
+        paginated_items = filtered_items.iloc[start_idx : start_idx + ITEMS_PER_PAGE]
 
-# -------------------------
-# Lógica de Renderização Principal
-# -------------------------
-if st.session_state.selected_manga_id:
-    display_manga_details(st.session_state.selected_manga_id)
-else:
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "🏠 Catálogo de Mangás",
-        "➕ Adicionar/Atualizar Avaliação",
-        "📚 Gerar Recomendações",
-        "📊 Avaliar Acurácia",
-    ])
-
-    # -------------------------------------
-    # Tab 1: Catálogo de Mangás
-    # -------------------------------------
-    with tab1:
-        st.header("Catálogo de Mangás")
-
-        # --- Adicionando busca e filtro ---
-        search_query = st.text_input("Buscar por título", key="search_input")
-        
-        categories = ["Todas"] + sorted(items_with_avg["category"].unique().tolist())
-        selected_category = st.selectbox("Filtrar por Categoria", options=categories, key="category_select")
-
-        filtered_items = items_with_avg
-        if search_query:
-            filtered_items = filtered_items[filtered_items["title"].str.contains(search_query, case=False, na=False)]
-        
-        if selected_category != "Todas":
-            filtered_items = filtered_items[filtered_items["category"] == selected_category]
-        # -----------------------------------
-
-        if filtered_items.empty:
-            st.warning("Nenhum mangá encontrado com os filtros selecionados.")
-        else:
-            # --- Lógica de Paginação ---
-            ITEMS_PER_PAGE = 8
-            total_items = len(filtered_items)
-            total_pages = math.ceil(total_items / ITEMS_PER_PAGE)
-
-            # Resetar a página se o filtro mudar e a página atual se tornar inválida
-            if st.session_state.page > total_pages:
-                st.session_state.page = 1
-            
-            start_idx = (st.session_state.page - 1) * ITEMS_PER_PAGE
-            end_idx = start_idx + ITEMS_PER_PAGE
-            paginated_items = filtered_items.iloc[start_idx:end_idx]
-
-            NUM_COLUMNS = 4
-            columns = st.columns(NUM_COLUMNS)
-
-            # --- RENDERIZAÇÃO DOS CARDS (Única iteração) ---
-            for i, (index, row) in enumerate(paginated_items.iterrows()):
-                col = columns[i % NUM_COLUMNS]
-                with col:
-                    # Chamar set_selected_manga_and_rerun para garantir o clique único
+        for i in range(0, len(paginated_items), 4):
+            cols = st.columns(4)
+            row_items = paginated_items.iloc[i:i+4]
+            for j, (_, row) in enumerate(row_items.iterrows()):
+                with cols[j]:
                     card(
                         title=f"{row['title']}",
                         text=f"⭐ {row['avg_rating']:.2f}" if row['avg_rating'] > 0 else "Sem avaliações",
@@ -189,180 +105,185 @@ else:
                         on_click=lambda item_id=row['item_id']: set_selected_manga_and_rerun(item_id),
                         key=f"card_{row['item_id']}",
                         styles={
-                            "card": { "width": "100%", "height": "400px", "margin": "0px" },
-                            "title": { "line-height": "1.2em" }
+                            "card": {"width": "100%", "height": "400px", "margin": "0px"},
+                            "title": {"line-height": "1.2em"}
                         }
                     )
-            
-            st.markdown("---")
-            
-            # --- Controles de Paginação ---
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                if st.button("Anterior", disabled=(st.session_state.page <= 1), use_container_width=True):
-                    st.session_state.page -= 1
-                    st.rerun()
-
-            with col2:
-                st.markdown(f"<div style='text-align: center; margin-top: 10px;'>Página {st.session_state.page} de {total_pages}</div>", unsafe_allow_html=True)
-            
-            with col3:
-                if st.button("Próxima", disabled=(st.session_state.page >= total_pages), use_container_width=True):
-                    st.session_state.page += 1
-                    st.rerun()
-
-
-    # -------------------------------------
-    # Tab 2: Adicionar/Atualizar Avaliação
-    # -------------------------------------
-    with tab2:
-        st.header("Adicionar ou Atualizar Avaliação de Mangá")
         
-        # Simplificado para apenas um input numérico, permitindo a criação implícita de novos IDs
-        new_user_id = st.number_input("ID do Usuário", min_value=1, step=1)
-
-        manga_titles = items_df["title"].tolist()
-        selected_manga_title = st.selectbox("Nome do Mangá", manga_titles)
-
-        new_item_id = items_df[items_df["title"] == selected_manga_title]["item_id"].iloc[0]
-        st.write(f"ID do Mangá Selecionado: {new_item_id}")
-
-        new_rating = st.slider("Nota do Mangá", min_value=1, max_value=5, value=3)
-
-        if st.button("Salvar Avaliação"):
-            exists_index = ratings_df[
-                (ratings_df["user_id"] == new_user_id) &
-                (ratings_df["item_id"] == new_item_id)
-            ].index
-            if len(exists_index) > 0:
-                ratings_df.loc[exists_index, "rating"] = new_rating
-                st.success(f"Avaliação atualizada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
-            else:
-                new_row = {"user_id": new_user_id, "item_id": new_item_id, "rating": new_rating}
-                ratings_df = pd.concat([ratings_df, pd.DataFrame([new_row])], ignore_index=True)
-                st.success(f"Avaliação adicionada: Usuário {new_user_id}, Mangá {new_item_id}, Nota {new_rating}")
-
-            ratings_df.to_csv(RATINGS_CSV, index=False)
+        st.markdown("---")
+        col1, col2, col3 = st.columns(3)
+        if col1.button("Anterior", disabled=(st.session_state.page <= 1), use_container_width=True):
+            st.session_state.page -= 1
             st.rerun()
+        col2.markdown(f"<div style='text-align: center; margin-top: 10px;'>Página {st.session_state.page} de {total_pages}</div>", unsafe_allow_html=True)
+        if col3.button("Próxima", disabled=(st.session_state.page >= total_pages), use_container_width=True):
+            st.session_state.page += 1
+            st.rerun()
+
+
+def display_add_rating():
+    """Renderiza a página para adicionar ou atualizar avaliações."""
+    st.header(" Adicionar ou Atualizar Avaliação")
+    global ratings_df
+    
+    new_user_id = st.number_input("ID do Usuário", min_value=1, step=1, value=st.session_state.current_user_id)
+    manga_titles = items_df["title"].tolist()
+    selected_manga_title = st.selectbox("Nome do Mangá", manga_titles)
+    new_item_id = items_df[items_df["title"] == selected_manga_title]["item_id"].iloc[0]
+    st.write(f"ID do Mangá Selecionado: {new_item_id}")
+    new_rating = st.slider("Nota do Mangá", 1, 5, 3)
+
+    if st.button("Salvar Avaliação"):
+        exists_index = ratings_df[
+            (ratings_df["user_id"] == new_user_id) & (ratings_df["item_id"] == new_item_id)
+        ].index
+
+        if not exists_index.empty:
+            ratings_df.loc[exists_index, "rating"] = new_rating
+            st.session_state.toast_message = {"message": "✅ Avaliação atualizada com sucesso!", "icon": "✅"}
+        else:
+            new_row = pd.DataFrame([{"user_id": new_user_id, "item_id": new_item_id, "rating": new_rating}])
+            ratings_df = pd.concat([ratings_df, new_row], ignore_index=True)
+            st.session_state.toast_message = {"message": "✅ Avaliação adicionada com sucesso!", "icon": "✅"}
+
+        ratings_df.to_csv(RATINGS_CSV, index=False)
+        st.cache_data.clear()
+
+        # Mostra o aviso imediatamente
+        st.toast(st.session_state.toast_message["message"], icon=st.session_state.toast_message["icon"])
+        st.session_state.toast_message = None
 
         st.subheader("Avaliações existentes")
         st.dataframe(ratings_df)
 
-    # -------------------------------------
-    # Tab 3: Gerar Recomendações
-    # -------------------------------------
-    with tab3:
-        st.header("Gerar Recomendações")
-
-        if ratings_df.empty:
-            st.info("Adicione algumas avaliações primeiro na aba 'Adicionar/Atualizar Avaliação'.")
-        else:
-            user_ids = ratings_df["user_id"].unique()
-            selected_user = st.selectbox(
-                "Escolha o ID do Usuário",
-                options=sorted(user_ids)
-            )
-            top_n = 5
-            st.write(f"**Quantidade de Recomendações:** {top_n}")
-
-            if st.button("Gerar Recomendações"):
+def display_recommendations():
+    """Renderiza a página de geração de recomendações."""
+    st.header(" Gerar Recomendações")
+    if ratings_df.empty:
+        st.info("Adicione avaliações para gerar recomendações.")
+    else:
+        user_ids = sorted(ratings_df["user_id"].unique())
+        selected_user = st.selectbox("Escolha o ID do Usuário", options=user_ids)
+        st.write("**Quantidade de Recomendações:** 5")
+        if st.button("Gerar Recomendações"):
+            with st.spinner('Buscando recomendações...'):
                 try:
                     response = requests.get(f"{API_URL}/recomendar/{selected_user}")
-                    if response.status_code == 200:
-                        recs = response.json()["recommendations"]
-                        if recs:
-                            rec_df = pd.DataFrame(recs)
-                            st.subheader(f"Recomendações para Usuário {selected_user}")
-                            rec_df = rec_df.merge(items_df[['item_id', 'image_url']], on='item_id', how='left')
-                            
-                            recs_per_row = 5
-                            num_recs = len(rec_df)
-
-                            for i in range(0, num_recs, recs_per_row):
-                                start = i
-                                end = min(i + recs_per_row, num_recs)
-                                row_data = rec_df.iloc[start:end]
-                                
-                                num_cols_in_row = len(row_data)
-                                num_spacers = 5 - num_cols_in_row
-                                
-                                cols = st.columns([1, *[2] * num_cols_in_row, *[1] * num_spacers])
-                                
-                                with cols[0]:
-                                    st.write("")
-                                
-                                for j, (index, row) in enumerate(row_data.iterrows()):
-                                    with cols[j + 1]:
-                                        st.image(row['image_url'], caption=row['title'], use_container_width=True)
-                                        st.write(f"**Score:** {row['score']:.2f}")
-
-                            st.subheader("Visualização dos Scores de Recomendação")
-                            chart = alt.Chart(rec_df).mark_bar().encode(
-                                x=alt.X('title', sort='-y', title='Título do Mangá'),
-                                y=alt.Y('score', title='Score de Recomendação'),
-                                tooltip=['title', 'score']
-                            ).properties(title='Top Recomendações por Score')
-                            st.altair_chart(chart, use_container_width=True)
-                        else:
-                            st.warning("Nenhuma recomendação encontrada para este usuário.")
+                    response.raise_for_status() 
+                    recs = response.json().get("recommendations", [])
+                    if recs:
+                        rec_df = pd.DataFrame(recs).merge(items_df[['item_id', 'image_url']], on='item_id')
+                        st.subheader(f"Recomendações para Usuário {selected_user}")
+                        cols = st.columns(len(rec_df))
+                        for i, (_, row) in enumerate(rec_df.iterrows()):
+                            with cols[i]:
+                                st.image(row['image_url'], caption=row['title'], use_container_width=True)
+                                st.write(f"**Score:** {row['score']:.2f}")
                     else:
-                        st.error("Erro ao conectar ao backend")
-                except Exception as e:
-                    st.error(f"Erro: {e}")
+                        st.warning("Nenhuma recomendação encontrada para este usuário.")
+                except requests.RequestException as e:
+                    st.error(f"Erro de conexão com o backend: {e}")
 
-    # -------------------------------------
-    # Tab 4: Avaliar Acurácia
-    # -------------------------------------
-    with tab4:
-        st.header("Avaliação da Acurácia do Modelo")
-        if ratings_df.empty or len(ratings_df['user_id'].unique()) < 1:
-            st.info("Adicione mais avaliações para calcular a acurácia.")
-        else:
-            st.subheader("Avaliação por Usuário")
-            selected_user_accuracy = st.number_input(
-                "Escolha o ID do Usuário para avaliação",
-                min_value=int(ratings_df["user_id"].min()),
-                max_value=int(ratings_df["user_id"].max()),
-                step=1,
-                value=int(ratings_df["user_id"].min())
-            )
-            st.write("**Fração de avaliações para teste:** 30%")
-            st.write("**Quantidade de recomendações para avaliação:** 5")
-
-            if st.button("Calcular Acurácia do Usuário"):
+def display_accuracy():
+    """Renderiza a página de avaliação de acurácia."""
+    st.header(" Avaliar Acurácia")
+    if ratings_df.empty or ratings_df['user_id'].nunique() < 1:
+        st.info("Adicione mais avaliações para calcular a acurácia.")
+    else:
+        st.subheader("Avaliação por Usuário")
+        user_ids = sorted(ratings_df["user_id"].unique())
+        selected_user = st.selectbox("Escolha um usuário", options=user_ids)
+        st.write("**Parâmetros fixos:** Fração de teste = 30%, Top N = 5")
+        if st.button("Calcular Acurácia do Usuário"):
+            with st.spinner("Calculando..."):
                 try:
-                    response = requests.get(f"{API_URL}/avaliar_acuracia/{selected_user_accuracy}")
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        if "message" in result:
-                            st.warning(result["message"])
-                        else:
-                            st.subheader(f"Resultados de Acurácia para o Usuário {result['user_id']}")
-                            if result['accuracy'] == 0.0:
-                                st.metric(label="Acurácia", value="0.00%")
-                                st.warning("O modelo não conseguiu fazer recomendações que correspondem aos itens de teste com base nos dados de treino.")
-                            else:
-                                st.metric(label="Acurácia", value=f"{result['accuracy']:.2%}")
-                            st.write(f"**Itens avaliados positivamente no teste:** {result['test_liked']}")
-                            st.write(f"**Itens recomendados:** {result['recommended']}")
-                            st.write(f"**Itens corretos (hits):** {result['hits']}")
+                    response = requests.get(f"{API_URL}/avaliar_acuracia/{selected_user}")
+                    response.raise_for_status()
+                    result = response.json()
+                    if "message" in result:
+                        st.warning(result["message"])
                     else:
-                        st.error("Erro ao conectar ao backend")
-                except Exception as e:
-                    st.error(f"Erro: {e}")
+                        st.metric("Acurácia", f"{result.get('accuracy', 0):.2%}")
+                        st.write(f"**Itens de teste (gostou):** {result.get('test_liked', [])}")
+                        st.write(f"**Itens recomendados:** {result.get('recommended', [])}")
+                        st.write(f"**Acertos:** {result.get('hits', 0)}")
+                except requests.RequestException as e:
+                    st.error(f"Erro de conexão com o backend: {e}")
 
-            st.markdown("---")
-            st.subheader("Avaliação Geral do Modelo")
-            if st.button("Calcular Acurácia Geral"):
+        st.markdown("---")
+        st.subheader("Avaliação Geral do Modelo")
+        if st.button("Calcular Acurácia Geral"):
+            with st.spinner("Calculando acurácia para todos os usuários..."):
                 try:
                     response = requests.get(f"{API_URL}/avaliar_acuracia_geral")
-                    if response.status_code == 200:
-                        result = response.json()
-                        st.metric("Acurácia Média Global", f"{result['overall_accuracy']:.2%}")
-                        st.write(f"**Total de usuários avaliados:** {result['total_users_evaluated']}")
-                    else:
-                        st.error("Erro ao conectar ao backend.")
-                except Exception as e:
-                    st.error(f"Erro: {e}")
+                    response.raise_for_status()
+                    result = response.json()
+                    st.metric("Acurácia Média Global", f"{result.get('overall_accuracy', 0):.2%}")
+                    st.write(f"**Total de usuários avaliados:** {result.get('total_users_evaluated', 0)}")
+                except requests.RequestException as e:
+                    st.error(f"Erro de conexão ou endpoint não encontrado: {e}")
+
+def display_manga_details(item_id):
+    """Renderiza a página de detalhes de um mangá específico."""
+    global ratings_df
+    if st.button(" Voltar ao Catálogo", key="back_button"):
+        st.session_state.selected_manga_id = None
+        st.rerun()
+
+    selected_item = items_with_avg.loc[items_with_avg["item_id"] == item_id].iloc[0]
+    st.header(selected_item["title"])
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.image(selected_item['image_url'], use_container_width=True)
+    with col2:
+        st.subheader("Detalhes")
+        st.write(f"**Autor:** {selected_item['author']}")
+        st.write(f"**Ano:** {selected_item['year']}")
+        st.write(f"**Categoria:** {selected_item['category']}")
+        st.write(f"**Média:** ⭐ {selected_item['avg_rating']:.2f}" if selected_item['avg_rating'] > 0 else "Sem avaliações")
+
+    st.markdown("---")
+    st.subheader("Sua Avaliação")
+    current_user_id = st.number_input("Seu ID de usuário", min_value=1, step=1, value=st.session_state.current_user_id, key='user_id_input_detail')
+    st.session_state.current_user_id = current_user_id
+    
+    user_rating_row = ratings_df[(ratings_df["user_id"] == current_user_id) & (ratings_df["item_id"] == item_id)]
+    initial_rating = int(user_rating_row["rating"].iloc[0]) if not user_rating_row.empty else 3
+    st.info(f"Sua avaliação atual: **{initial_rating}**." if not user_rating_row.empty else "Você ainda não avaliou este mangá.")
+    
+    new_rating = st.slider("Nota", 1, 5, initial_rating)
+    if st.button("Salvar Minha Avaliação"):
+        if not user_rating_row.empty:
+            ratings_df.loc[user_rating_row.index, "rating"] = new_rating
+            st.session_state.toast_message = {"message": "✅ Avaliação atualizada com sucesso!", "icon": "✅"}
+        else:
+            new_row = pd.DataFrame([{"user_id": current_user_id, "item_id": item_id, "rating": new_rating}])
+            ratings_df = pd.concat([ratings_df, new_row], ignore_index=True)
+            st.session_state.toast_message = {"message": "✅ Avaliação adicionada com sucesso!", "icon": "✅"}
+        
+        ratings_df.to_csv(RATINGS_CSV, index=False)
+        st.cache_data.clear()
+        st.rerun()
+
+# --- Renderização Principal ---
+if 'selected_manga_id' in st.session_state and st.session_state.selected_manga_id is not None:
+    display_manga_details(st.session_state.selected_manga_id)
+else:
+    with st.sidebar:
+        st.title("MangáRec")
+        selected_page = option_menu(
+            menu_title="Menu",
+            options=["Catálogo", "Adicionar Avaliação", "Recomendações", "Acurácia"],
+            icons=["collection", "plus-circle", "graph-up-arrow", "clipboard-data"],
+            menu_icon="list-task",
+            default_index=0,
+        )
+    
+    if selected_page == "Catálogo":
+        display_catalog()
+    elif selected_page == "Adicionar Avaliação":
+        display_add_rating()
+    elif selected_page == "Recomendações":
+        display_recommendations()
+    elif selected_page == "Acurácia":
+        display_accuracy()
