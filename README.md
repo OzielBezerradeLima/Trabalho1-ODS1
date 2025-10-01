@@ -3,6 +3,9 @@
 **Primeiro Trabalho Prático** com o tema **"Sistema de Recomendação com Filtragem Colaborativa"** da disciplina **Oficina de Desenvolvimento de Sistemas 1**.
 
 ---
+## Objetivo do Sistema 
+O objetivo principal deste sistema é ser uma plataforma inteligente de recomendação de mangás. Utilizando o histórico de avaliações de cada usuário, a aplicação constrói um perfil de preferências detalhado. A partir desse perfil, nosso algoritmo analisa o banco de dados e sugere novos títulos com alta probabilidade de agradar ao leitor, garantindo uma descoberta de conteúdo personalizada e eficaz.
+---
 
 ## Criar e rodar o ambiente virtual
 
@@ -98,3 +101,5 @@ A acurácia do modelo é avaliada através de uma simulação para um usuário e
 4.  **Cálculo da Métrica**: A acurácia é calculada como a quantidade de itens que aparecem **tanto** na lista de recomendações **quanto** na lista de "favoritos" do teste (os *hits*), dividida pelo número total de recomendações geradas.
 
 * **Análise**: Essa métrica, similar à **Precisão**, avalia o quão relevantes foram as recomendações. Um resultado de **20%**, por exemplo, significa que 1 a cada 5 itens recomendados era algo que o usuário comprovadamente gostava (com base nos dados de teste).
+
+Ao realizar a primeira avaliação formal do nosso sistema de recomendação, chegamos a uma acurácia geral de 7,37%. Embora este número possa parecer baixo à primeira vista, ele é fundamental como um ponto de partida (baseline) e nos forneceu um diagnóstico muito claro sobre o estado atual do modelo. A nossa análise indica que a principal causa para este resultado é um desafio clássico em sistemas de recomendação: a esparsidade dos dados. Isso significa que, com o número ainda limitado de avaliações por usuário, o algoritmo tem dificuldade em encontrar padrões robustos e identificar outros usuários com gostos similares de forma eficaz. Dessa forma, este número não é visto como uma falha, mas sim como um diagnóstico preciso que nos aponta o caminho para as próximas otimizações. Com base nisso, os próximos passos já estão definidos, começando pela implementação de uma abordagem híbrida que utilizará metadados dos mangás (gênero, autor e tags) para contornar a falta de avaliações. Adicionalmente, planejo explorar algoritmos mais avançados, como os de Fatoração de Matrizes (SVD), que são projetados para lidar com dados esparsos. Estou confiante de que a implementação dessas melhorias resultará em um aumento significativo na acurácia e na qualidade das recomendações futuras.
